@@ -9,29 +9,32 @@ LABEL maintainer="gmartin"
 ENV TITLE="MetaTrader4"
 ENV WINEPREFIX="/config/.wine"
 
-# --- 修复 1：清理过期源并安装 Node.js 20 仓库 ---
-RUN sed -i '/bullseye-backports/d' /etc/apt/sources.list && \
-    apt-get update && apt-get install -y curl && \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+# 1. 适配 Debian 11 (Bullseye) 的归档源，剔除已失效的 backports，并跳过全局 upgrade 避免 404
+RUN rm -f /etc/apt/sources.list.d/nodesource.list /etc/apt/sources.list.d/nodesource.sources && \
+    echo "deb http://archive.debian.org/debian bullseye main contrib non-free" > /etc/apt/sources.list && \
+    echo "deb http://archive.debian.org/debian-security bullseye-security main contrib non-free" >> /etc/apt/sources.list && \
+    sed -i '/bullseye-backports/d' /etc/apt/sources.list && \
+    echo "Acquire::Check-Valid-Until \"false\";" > /etc/apt/apt.conf.d/99no-check-valid-until && \
+    apt-get update && \
+    apt-get install -y \
+        python3-pip \
+        wget \
+        gnupg2 \
+        software-properties-common \
+        ca-certificates && \
+    pip3 install --upgrade pip && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install required packages
-RUN apt-get install -y \
-    nodejs \
-    python3-pip \
-    wget \
-    gnupg2 \
-    software-properties-common \
-    && pip3 install --upgrade pip
+# 2. 使用现代化推荐的 gpg 方式添加 WineHQ 仓库密钥，避免已废弃的 apt-key 报错
+RUN dpkg --add-architecture i386 \
+    && mkdir -p /etc/apt/keyrings \
+    && wget -qO - https://dl.winehq.org/wine-builds/winehq.key | gpg --dearmor -o /etc/apt/keyrings/winehq-archive.key \
+    && echo "deb [signed-by=/etc/apt/keyrings/winehq-archive.key] https://dl.winehq.org/wine-builds/debian/ bullseye main" > /etc/apt/sources.list.d/winehq.list \
+    && apt-get update
 
-# --- 修复 2：使用更安全的方式添加 Wine 仓库（避开 apt-key 警告） ---
-RUN dpkg --add-architecture i386 && \
-    mkdir -pm 755 /etc/apt/keyrings && \
-    wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key && \
-    wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bullseye/winehq-bullseye.sources
-
-# --- 修复 3：更新源并安装 ---
-RUN apt-get update && \
-    apt-get install --install-recommends -y \
+# 3. 安装 WineHQ stable 及所需依赖
+RUN apt-get install --install-recommends -y \
     winehq-stable \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
