@@ -1,137 +1,25 @@
-networks:
-  portainer-nginx-proxy-manager_default: #change this to your network
-    external: true
-
 services:
-  mt4_1:
-    container_name: mt4_1
+  mt4_Origin2:
+    build: .
     image: mt4
-    build:
-      context: .
-      dockerfile: Dockerfile
+    container_name: mt4_Origin_2
     volumes:
-      - ./config_1:/config
+      - ./configOrigin2:/config
     ports:
-      - 4001:3000
-      - 9001:8001
+      - "4002:3000"
+    environment:
+      - CUSTOM_USER=${CUSTOM_USER}
+      - PASSWORD=${PASSWORD}
+      - LANG=zh_CN.UTF-8
+      - LC_ALL=zh_CN.UTF-8
+      - LANGUAGE=zh_CN:zh
+      - LC_CTYPE=zh_CN.UTF-8
     env_file:
       - .env
-    deploy:
-      resources:
-        limits:
-          cpus: "6.0"
-          memory: 16G
-        reservations:
-          cpus: "0.25"
-          memory: 512M
-    restart: unless-stopped
+    restart: always
     networks:
-      - portainer-nginx-proxy-manager_default #change this to your network
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
+      - metatrader5-docker-11_default
 
-  mt4_2:
-    container_name: mt4_2
-    image: mt4
-    volumes:
-      - ./config_2:/config
-    ports:
-      - 4002:3000
-      - 9002:8001
-    env_file:
-      - .env
-    deploy:
-      resources:
-        limits:
-          cpus: "6.0"
-          memory: 16G
-        reservations:
-          cpus: "0.25"
-          memory: 512M
-    restart: unless-stopped
-    networks:
-      - portainer-nginx-proxy-manager_default #change this to your network
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  mt4_3:
-    container_name: mt4_3
-    image: mt4
-    volumes:
-      - ./config_3:/config
-    ports:
-      - 4003:3000
-      - 9003:8001
-    env_file:
-      - .env
-    deploy:
-      resources:
-        limits:
-          cpus: "6.0"
-          memory: 16G
-        reservations:
-          cpus: "0.25"
-          memory: 512M
-    restart: unless-stopped
-    networks:
-      - portainer-nginx-proxy-manager_default #change this to your network
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  mt4_4:
-    container_name: mt4_4
-    image: mt4
-    volumes:
-      - ./config_4:/config
-    ports:
-      - 4004:3000
-      - 9004:8001
-    env_file:
-      - .env
-    deploy:
-      resources:
-        limits:
-          cpus: "6.0"
-          memory: 16G
-        reservations:
-          cpus: "0.25"
-          memory: 512M
-    restart: unless-stopped
-    networks:
-      - portainer-nginx-proxy-manager_default #change this to your network
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  mt4_5:
-    container_name: mt4_5
-    image: mt4
-    volumes:
-      - ./config_5:/config
-    ports:
-      - 4005:3000
-      - 9005:8001
-    env_file:
-      - .env
-    deploy:
-      resources:
-        limits:
-          cpus: "6.0"
-          memory: 16G
-        reservations:
-          cpus: "0.25"
-          memory: 512M
-    restart: unless-stopped
-    networks:
-      - portainer-nginx-proxy-manager_default #change this to your network
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
+networks:
+  metatrader5-docker-11_default:
+    driver: bridge
